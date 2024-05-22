@@ -2,7 +2,7 @@ import { createReadStream } from "fs";
 import * as csvParser from "csv-parser";
 import Product from "./product";
 import { createObjectCsvWriter } from "csv-writer";
-import { logError, logInfo, logSuccess } from "./log";
+import { logError, logInfo, logSuccess, logWarn } from "./log";
 import { __CSV_FILE, __INTERVAL_MILISECONDS } from "./config";
 import { GetProductThumbnailAsBase64FromUrl } from "./getThumbnailAsBase64";
 import { extractFeatures } from "./extractFeatures";
@@ -61,11 +61,9 @@ pipe.on("data", (data) => {
 
       const prompt = `Write a description of the product in this image that has a name of ${product.name} for a listing on a website for a business. The business is an event equipment rental business but do not make any mention of them doing delivery or setup. ${specifications}Make the description between 200 and 300 words. ${productDescription}Don't include a title. Use UK English please.`;
 
-      /*const description = await (
+      const description = await (
         await fetchOpenAIDescription(prompt, thumbnailB64)
-      ).message*/;
-
-      const description = data["product.description"];
+      ).message;
 
       csvWriter
         .writeRecords([
@@ -90,12 +88,16 @@ pipe.on("data", (data) => {
     parse()
       .then(() => {
         finished = true;
-        backoffCounter = 0;
+        if (backoffCounter !== 0) {
+          backoffCounter = 0;
+          logWarn("Backoff counter reset!");
+        }
       })
       .catch((err) => {
         logError(`id: ${product.id} slug: ${product.slug} err: ${err}`);
         finished = true;
         backoffCounter++;
+        logWarn(`Backoff counter increased to: ${backoffCounter}`);
       });
 
     const interval = setInterval(() => {
