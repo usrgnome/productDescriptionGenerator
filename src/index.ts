@@ -19,6 +19,8 @@ const csvWriter = createObjectCsvWriter({
   ],
 });
 
+let backoffCounter = 0;
+
 const stream = createReadStream(__CSV_FILE);
 const pipe = stream.pipe(csvParser());
 
@@ -53,14 +55,15 @@ pipe.on("data", (data) => {
             )}. `
           : "";
 
-      const productDescription = data["product.description"] ? `An examle description is provided: ${data["product.description"]}. ` : "";
+      const productDescription = data["product.description"]
+        ? `An examle description is provided: ${data["product.description"]}. `
+        : "";
 
       const prompt = `Write a description of the product in this image that has a name of ${product.name} for a listing on a website for a business. The business is an event equipment rental business but do not make any mention of them doing delivery or setup. ${specifications}Make the description between 200 and 300 words. ${productDescription}Don't include a title. Use UK English please.`;
 
-      console.log(prompt);
       /*const description = await (
         await fetchOpenAIDescription(prompt, thumbnailB64)
-      ).message;*/
+      ).message*/;
 
       const description = data["product.description"];
 
@@ -87,16 +90,21 @@ pipe.on("data", (data) => {
     parse()
       .then(() => {
         finished = true;
+        backoffCounter = 0;
       })
       .catch((err) => {
         logError(`id: ${product.id} slug: ${product.slug} err: ${err}`);
         finished = true;
+        backoffCounter++;
       });
 
     const interval = setInterval(() => {
       if (finished) {
         // begin processing the next one
-        setTimeout(() => pipe.resume(), __INTERVAL_MILISECONDS);
+        setTimeout(
+          () => pipe.resume(),
+          __INTERVAL_MILISECONDS + backoffCounter * 1000
+        );
         clearInterval(interval);
         return;
       }
