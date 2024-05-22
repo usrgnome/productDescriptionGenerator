@@ -2,7 +2,7 @@ import { logInfo } from "./log";
 import { config } from "dotenv";
 
 // load the .env varaibles
-config({ path: __dirname + "/.env" });
+config({ path: ".env" });
 
 export const __OPEN_AI_KEY = process.env.OPENAI_API_KEY;
 export const __CSV_FILE = process.env.CSV_FILE;
