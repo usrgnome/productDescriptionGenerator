@@ -62,23 +62,28 @@ pipe.on("data", (data) => {
 
       const prompt = `Write a description of the product in this image that has a name of ${product.name} for a listing on a website for a business. The business is an event equipment rental business but do not make any mention of them doing delivery or setup. ${specifications}Make the description between 200 and 300 words. ${productDescription}Don't include a title. Use UK English please.`;
 
-      const description = await (
-        await fetchOpenAIDescription(prompt, thumbnail)
-      ).message;
-
-      csvWriter
-        .writeRecords([
-          {
-            catalog_id: data["_id"],
-            product_id: product.id,
-            product_slug: product.slug,
-            product_description: description,
-          },
-        ])
-        .then(() => {
-          logSuccess(
-            `Processed id: ${product.id} slug: ${product.slug} successfully.`
-          );
+      fetchOpenAIDescription(prompt, thumbnail)
+        .then((obj) => {
+          const description = obj.message;
+          csvWriter
+            .writeRecords([
+              {
+                catalog_id: data["_id"],
+                product_id: product.id,
+                product_slug: product.slug,
+                product_description: description,
+              },
+            ])
+            .then(() => {
+              logSuccess(
+                `Processed id: ${product.id} slug: ${product.slug} successfully.`
+              );
+            })
+            .catch((err) => {
+              logError(
+                `id: ${product.id} slug: ${product.slug} could not write: ${err}`
+              );
+            });
         })
         .catch((err) => {
           logError(

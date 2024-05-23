@@ -42,8 +42,7 @@ export function fetchOpenAIDescription(
           resolve({ message: response.choices[0].message.content });
         })
         .catch((err) => {
-          console.log(err);
-          throw "Error: " + err;
+          reject("Error: " + err);
         });
     }
   });
