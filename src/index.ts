@@ -16,7 +16,6 @@ const csvWriter = createObjectCsvWriter({
   path: "output.csv",
   header: [
     { id: "catalog_id", title: "catalog_id" },
-    { id: "product_slug", title: "product_slug" },
     { id: "product_id", title: "product_id" },
     { id: "product_description", title: "product_description" },
   ],
@@ -32,13 +31,12 @@ pipe.on("data", (data) => {
   const features: string[] = [];
   const product = new Product(
     data["product._id"],
-    data["product.slug"],
     data["product.title"],
     features
   );
 
   // some products dont have a handle yet, maybe they are temp??
-  if (data["product.slug"] && data["product.media[0].URLs.small"]) {
+  if (data["product.media[0].URLs.small"]) {
     pipe.pause();
 
     const parse = async () => {
@@ -70,24 +68,23 @@ pipe.on("data", (data) => {
               {
                 catalog_id: data["_id"],
                 product_id: product.id,
-                product_slug: product.slug,
                 product_description: description,
               },
             ])
             .then(() => {
               logSuccess(
-                `Processed id: ${product.id} slug: ${product.slug} successfully.`
+                `Processed cat_id: ${data["_id"]} prod_id: ${product.id} successfully.`
               );
             })
             .catch((err) => {
               logError(
-                `id: ${product.id} slug: ${product.slug} could not write: ${err}`
+                `cat_id: ${data["_id"]} prod_id: ${product.id} could not write: ${err}`
               );
             });
         })
         .catch((err) => {
           logError(
-            `id: ${product.id} slug: ${product.slug} could not write: ${err}`
+            `cat_id: ${data["_id"]} prod_id: ${product.id} could not write: ${err}`
           );
         });
     };
@@ -100,7 +97,7 @@ pipe.on("data", (data) => {
         }
       })
       .catch((err) => {
-        logError(`id: ${product.id} slug: ${product.slug} err: ${err}`);
+        logError(`catalog_id: ${data["_id"]} prod_id: ${product.id} err: ${err}`);
         finished = true;
         backoffCounter++;
         logWarn(`Backoff counter increased to: ${backoffCounter}`);
