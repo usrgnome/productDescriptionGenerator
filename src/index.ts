@@ -36,14 +36,14 @@ pipe.on("data", (data) => {
   );
 
   // some products dont have a handle yet, maybe they are temp??
-  if (data["product.media[0].URLs.small"]) {
+  if (data["product.primaryImage.URLs.small"]) {
     pipe.pause();
 
     const parse = async () => {
       // extract the features we want to use to assist the AI
       extractFeatures(features, data);
 
-      const thumbnail = getURL(data["product.media[0].URLs.small"]);
+      const thumbnail = getURL(data["product.primaryImage.URLs.small"]);
 
       if (!thumbnail) throw "No thumbnail url";
 
