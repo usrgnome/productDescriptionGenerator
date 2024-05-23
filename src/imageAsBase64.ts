@@ -18,8 +18,9 @@ export function getImageAsBase64(imageUrl: string): Promise<string> {
       const chunks = [];
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => {
+        const fileType = res.headers["content-type"];
         const base64Image = Buffer.concat(chunks).toString("base64");
-        resolve(`data:image/png;base64,${base64Image}`);
+        resolve(`data:${fileType};base64,${base64Image}`);
       });
     });
 
