@@ -115,7 +115,7 @@ pipe.on("data", (data) => {
       }
     }, __INTERVAL_MILISECONDS);
   } else {
-    logError(`id: ${product.id} err: missing a slug`);
+    logError(`id: ${product.id} err: missing a thumbnail`);
   }
 });
 
