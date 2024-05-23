@@ -5,7 +5,7 @@ const openai = new OpenAI({ apiKey: __OPEN_AI_KEY });
 
 export function fetchOpenAIDescription(
   prompt: string,
-  imageB64: string
+  imageURL: string
 ): Promise<{ message: string }> {
   return new Promise(async (resolve, reject) => {
     if (__TESTING) {
@@ -30,7 +30,7 @@ export function fetchOpenAIDescription(
                 {
                   type: "image_url",
                   image_url: {
-                    url: imageB64,
+                    url: imageURL,
                     detail: "low",
                   },
                 },

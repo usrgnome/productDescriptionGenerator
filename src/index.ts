@@ -42,11 +42,7 @@ pipe.on("data", (data) => {
       // extract the features we want to use to assist the AI
       extractFeatures(features, data);
 
-      const thumbnailB64 = await GetProductThumbnailAsBase64FromUrl(
-        data["product.media[0].URLs.small"]
-      );
-
-      if (!thumbnailB64) throw "Missing thumbnail!";
+      const thumbnail = data["product.media[0].URLs.small"];
 
       const specifications =
         features.length > 0
@@ -62,7 +58,7 @@ pipe.on("data", (data) => {
       const prompt = `Write a description of the product in this image that has a name of ${product.name} for a listing on a website for a business. The business is an event equipment rental business but do not make any mention of them doing delivery or setup. ${specifications}Make the description between 200 and 300 words. ${productDescription}Don't include a title. Use UK English please.`;
 
       const description = await (
-        await fetchOpenAIDescription(prompt, thumbnailB64)
+        await fetchOpenAIDescription(prompt, thumbnail)
       ).message;
 
       csvWriter
