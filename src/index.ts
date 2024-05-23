@@ -4,7 +4,10 @@ import Product from "./product";
 import { createObjectCsvWriter } from "csv-writer";
 import { logError, logInfo, logSuccess, logWarn } from "./log";
 import { __CSV_FILE, __INTERVAL_MILISECONDS } from "./config";
-import { GetProductThumbnailAsBase64FromUrl } from "./getThumbnailAsBase64";
+import {
+  GetProductThumbnailAsBase64FromUrl,
+  getURL,
+} from "./getThumbnailAsBase64";
 import { extractFeatures } from "./extractFeatures";
 import { fetchOpenAIDescription } from "./openai";
 
@@ -42,7 +45,9 @@ pipe.on("data", (data) => {
       // extract the features we want to use to assist the AI
       extractFeatures(features, data);
 
-      const thumbnail = data["product.media[0].URLs.small"];
+      const thumbnail = getURL(data["product.media[0].URLs.small"]);
+
+      if (!thumbnail) throw "No thumbnail url";
 
       const specifications =
         features.length > 0
