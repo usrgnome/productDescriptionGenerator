@@ -2,7 +2,7 @@ import { MongoClient, Db, ObjectId } from "mongodb";
 import { createReadStream } from "fs";
 import * as csvParser from "csv-parser";
 import { __MONGO_CONN, __OPEN_AI_KEY, __OUT_CSV_FILE } from "./config";
-import { logError, logInfo, logSuccess } from "./log";
+import { logError, logInfo, logSuccess, logWarn } from "./log";
 
 // Database Name
 const dbName = "reaction";
@@ -20,6 +20,11 @@ client.connect().then(() => {
   const productsCollection = db.collection("Product");
   const stream = createReadStream(__OUT_CSV_FILE);
 
+  let catModifiedCntr = 0;
+  let prodModifiedCntr = 0;
+  let prodNoModifiedCntr = 0;
+  let catNoModifiedCntr = 0;
+
   const pipe = stream.pipe(csvParser());
   let running = false;
   let finnished = false;
@@ -27,6 +32,10 @@ client.connect().then(() => {
   const onEnd = () => {
     console.log("end");
     client.close();
+    console.log(`modified catalogs: ${catModifiedCntr}`);
+    console.log(`modified prods: ${prodModifiedCntr}`);
+    console.log(`unmodified cats: ${catNoModifiedCntr}`);
+    console.log(`unmodified prods: ${prodNoModifiedCntr}`);
   };
 
   pipe.on("data", async (data) => {
@@ -36,7 +45,7 @@ client.connect().then(() => {
     const description = data["product_description"];
 
     logInfo("Updated catalog: " + data["catalog_id"]);
-    await catalogCollection.updateOne(
+    let catRes = await catalogCollection.updateOne(
       // @ts-ignore
       { _id: data["catalog_id"] },
       {
@@ -46,11 +55,17 @@ client.connect().then(() => {
       }
     );
 
-    logSuccess("Updated catalog: " + data["catalog_id"]);
+    if (catRes.matchedCount) {
+      catModifiedCntr++;
+      logSuccess("Updated catalog: " + data["catalog_id"]);
+    } else {
+      catNoModifiedCntr++;
+      logWarn("Couldnt update catalog: " + data["catalog_id"]);
+    }
 
     logInfo("Updating product: " + data["product_id"]);
 
-    await productsCollection.updateOne(
+    const prodRes = await productsCollection.updateOne(
       // @ts-ignore
       { _id: data["product_id"] },
       {
@@ -60,7 +75,13 @@ client.connect().then(() => {
       }
     );
 
-    logSuccess("Updated product: " + data["product_id"]);
+    if (prodRes.modifiedCount) {
+      prodModifiedCntr++;
+      logSuccess("Updated product: " + data["product_id"]);
+    } else {
+      prodNoModifiedCntr++;
+      logWarn("Couldnt product: " + data["product_id"]);
+    }
 
     pipe.resume();
     running = false;
@@ -73,7 +94,7 @@ client.connect().then(() => {
     finnished = true;
     if (!running) {
       onEnd();
-    } 
+    }
   });
 
   pipe.on("close", () => {
