@@ -51,6 +51,7 @@ client.connect().then(() => {
       {
         $set: {
           "product.description": description,
+          "product.metaDescription": description,
         },
       }
     );
@@ -71,6 +72,7 @@ client.connect().then(() => {
       {
         $set: {
           description: description,
+          metaDescription: description,
         },
       }
     );
