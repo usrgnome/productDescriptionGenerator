@@ -17,7 +17,7 @@ client.connect().then(() => {
 
   const db: Db = client.db(dbName);
   const catalogCollection = db.collection("Catalog");
-  const productsCollection = db.collection("Product");
+  const productsCollection = db.collection("Products");
   const stream = createReadStream(__OUT_CSV_FILE);
 
   let catModifiedCntr = 0;
